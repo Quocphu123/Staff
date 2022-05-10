@@ -1,11 +1,11 @@
-var staffList = [123];
+var staffList = [];
 
 var createStaff = function() {
     var isFormValid = validation();
 
     if (!isFormValid) return;
 
-    var id = +document.getElementById("tknv").value;
+    var id = document.getElementById("tknv").value;
     var name = document.getElementById("name").value;
     var email = document.getElementById("email").value;
     var password = document.getElementById("password").value;
@@ -24,7 +24,6 @@ var createStaff = function() {
         position,
         timeWork
     );
-    console.log({ staffList, newStaff });
 
     staffList.push(newStaff);
     saveData();
@@ -32,27 +31,24 @@ var createStaff = function() {
     document.getElementById("btnDong").click();
 };
 
-var renderStaff = function(renderList) {
+var renderStaff = function() {
     var dataHTML = "";
-    for (var i = 0; i < renderList.length; i++) {
+    for (var i = 0; i < staffList.length; i++) {
         dataHTML += `<tr>
-            <td>${renderList[i].id}</td>
-            <td>${renderList[i].name}</td>
-            <td>${renderList[i].email}</td>
-            <td>${renderList[i].dayWork}</td>
-            <td>${renderList[i].position}</td>
-            <td>${salaryStaff(
-              renderList[i].position,
-              renderList[i].salary
-            )}</td>
-            <td>${typeStaff(renderList[i].timeWork)}</td>
+            <td>${staffList[i].id}</td>
+            <td>${staffList[i].name}</td>
+            <td>${staffList[i].email}</td>
+            <td>${staffList[i].dayWork}</td>
+            <td>${staffList[i].position}</td>
+            <td>${salaryStaff(staffList[i].position, staffList[i].salary)}</td>
+            <td>${typeStaff(staffList[i].timeWork)}</td>
             <td>
-                <button data-target="#myModal" data-toggle="modal" class="btn btn-info" onclick="getStaff(${
-                  renderList[i].id
-                })">Cập nhật</button>
-                <button class="btn btn-danger" onclick="deleteStaff(${
-                  renderList[i].id
-                })">Xoá</button>
+                <button data-target="#myModal" data-toggle="modal" class="btn btn-info" onclick="getStaff('${
+                  staffList[i].id
+                }')">Cập nhật</button>
+                <button class="btn btn-danger" onclick="deleteStaff('${
+                  staffList[i].id
+                }')">Xoá</button>
             </td>
         
         </tr>`;
@@ -69,25 +65,18 @@ var saveData = function() {
 var getData = function() {
     if (localStorage.getItem("staffList")) {
         staffList = JSON.parse(localStorage.getItem("staffList"));
-    }
-
-    if (staffList) {
-        renderStaff(staffList);
+        renderStaff();
     }
 };
 
 var getStaff = function(id) {
-    console.log(staffList);
+    console.log(id); //123456
+    console.log(staffList[1].id); //123456
     var index = findById(id);
-    // if (index === -1) {
-    //     alert("Nhân viên k tồn tại");
-    //     return false;
-    // }
     console.log(index);
 
     var foundStaff = staffList[index];
-    console.log(foundStaff.id);
-    document.getElementById("tknv").disabled = true;
+
     document.getElementById("tknv").value = foundStaff.id;
 
     document.getElementById("name").value = foundStaff.name;
@@ -97,20 +86,15 @@ var getStaff = function(id) {
     document.getElementById("luongCB").value = foundStaff.salary;
     document.getElementById("chucvu").value = foundStaff.position;
     document.getElementById("gioLam").value = foundStaff.timeWork;
-
+    document.getElementById("tknv").disabled = true;
     document.getElementById("btnThemNV").style.display = "none";
     document.getElementById("btnCapNhat").addEventListener("click", () => {
-        updateStaff(foundStaff.id);
+        updateStaff();
     });
 };
 
-var updateStaff = function(id) {
-    var index = findById(id);
-    console.log(index);
-    if (!validation()) {
-        return false;
-    }
-    var id = +document.getElementById("tknv").value;
+var updateStaff = function() {
+    var id = document.getElementById("tknv").value;
     var name = document.getElementById("name").value;
     var email = document.getElementById("email").value;
     var password = document.getElementById("password").value;
@@ -119,23 +103,25 @@ var updateStaff = function(id) {
     var position = document.getElementById("chucvu").value;
     var timeWork = +document.getElementById("gioLam").value;
 
-    var newStaff = new Staff(
-        id,
-        name,
-        email,
-        password,
-        dayWork,
-        salary,
-        position,
-        timeWork
-    );
-    console.log(newStaff);
-    staffList.splice(index, 1, newStaff);
+    var index = findById(id);
+    if (!validation()) {
+        return false;
+    }
+
+    var foundStaff = staffList[index];
+
+    foundStaff.name = name;
+    foundStaff.email = email;
+    foundStaff.password = password;
+    foundStaff.dayWork = dayWork;
+    foundStaff.salary = salary;
+    foundStaff.position = position;
+    foundStaff.timeWork = timeWork;
 
     document.getElementById("btnDong").click();
 
     saveData();
-    getData();
+    renderStaff();
 };
 
 var clearModal = function() {
@@ -249,7 +235,12 @@ var validation = function() {
         required(email, "tbEmail") && pattern(email, "tbEmail", emailPattern);
     isValid &=
         required(password, "tbMatKhau") &&
-        pattern(password, "tbMatKhau", passwordPattern);
+        pattern(
+            password,
+            "tbMatKhau",
+            passwordPattern,
+            "* Không đúng định dạng. Gợi ý : Name@123"
+        );
     isValid &= required(dayWork, "tbNgay");
     isValid &=
         required(timeWork, "tbGiolam") && length(timeWork, "tbGiolam", 4, 6);
@@ -305,11 +296,12 @@ var length = function(val, spanId, min, max) {
     return true;
 };
 
-var pattern = function(val, spanId, regex) {
+var pattern = function(val, spanId, regex, message) {
     var valid = regex.test(val);
 
     if (!valid) {
-        document.getElementById(spanId).innerHTML = "* Không đúng định dạng";
+        document.getElementById(spanId).innerHTML =
+            message || "* Không đúng định dạng";
         document.getElementById(spanId).style.display = "inline-block";
         return false;
     }

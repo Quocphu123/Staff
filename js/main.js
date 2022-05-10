@@ -1,4 +1,4 @@
-staffList = [];
+var staffList = [];
 
 var createStaff = function() {
     var isFormValid = validation();
@@ -68,7 +68,9 @@ var saveData = function() {
 var getData = function() {
     staffList = JSON.parse(localStorage.getItem("staffList"));
 
-    renderStaff(staffList);
+    if (staffList) {
+        renderStaff(staffList);
+    }
 };
 
 var getStaff = function(id) {

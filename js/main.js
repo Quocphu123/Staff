@@ -1,56 +1,96 @@
 staffList = [];
 
 var createStaff = function() {
-    if (validation()) {
-        var id = document.getElementById("tknv").value;
-        var name = document.getElementById("name").value;
-        var email = document.getElementById("email").value;
-        var password = document.getElementById("password").value;
-        var dayWork = document.getElementById("datepicker").value;
-        var salary = +document.getElementById("luongCB").value;
-        var position = document.getElementById("chucvu").value;
-        var timeWork = +document.getElementById("gioLam").value;
+    var isFormValid = validation();
 
-        var newStaff = new Staff(
-            id,
-            name,
-            email,
-            password,
-            dayWork,
-            salary,
-            position,
-            timeWork
-        );
-        var elems = document.getElementsByClassName("sp-thongbao");
-        for (var i = 0; i < elems.length; i++) {
-            elems[i].style.display = "block";
-        }
-        staffList.push(newStaff);
-        renderStaff();
-    }
+    if (!isFormValid) return;
+
+    var id = document.getElementById("tknv").value;
+    var name = document.getElementById("name").value;
+    var email = document.getElementById("email").value;
+    var password = document.getElementById("password").value;
+    var dayWork = document.getElementById("datepicker").value;
+    var salary = +document.getElementById("luongCB").value;
+    var position = document.getElementById("chucvu").value;
+    var timeWork = +document.getElementById("gioLam").value;
+
+    var newStaff = new Staff(
+        id,
+        name,
+        email,
+        password,
+        dayWork,
+        salary,
+        position,
+        timeWork
+    );
+
+    staffList.push(newStaff);
+    console.log(staffList);
+    saveData();
+    getData();
+    document.getElementById("btnDong").click();
 };
 
-var renderStaff = function() {
+var renderStaff = function(renderList) {
     var dataHTML = "";
-    for (var i = 0; i < staffList.length; i++) {
+    for (var i = 0; i < renderList.length; i++) {
         dataHTML += `<tr>
-            <td>${staffList[i].id}</td>
-            <td>${staffList[i].name}</td>
-            <td>${staffList[i].email}</td>
-            <td>${staffList[i].dayWork}</td>
-            <td>${staffList[i].position}</td>
-            <td>${salaryStaff(staffList[i].position, staffList[i].salary)}</td>
-            <td>${typeStaff(staffList[i].timeWork)}</td>
-            <td><button class="btn btn-danger" onclick="deleteStaff(${
-              staffList[i].id
-            })">Xoá</button></td>
-            <td><button data-target="#myModal" data-toggle="modal" class="btn btn-info" onclick="getStaff(${
-              staffList[i].id
-            })">Cập nhật</button></td>
+            <td>${renderList[i].id}</td>
+            <td>${renderList[i].name}</td>
+            <td>${renderList[i].email}</td>
+            <td>${renderList[i].dayWork}</td>
+            <td>${renderList[i].position}</td>
+            <td>${salaryStaff(
+              renderList[i].position,
+              renderList[i].salary
+            )}</td>
+            <td>${typeStaff(renderList[i].timeWork)}</td>
+            <td>
+                <button data-target="#myModal" data-toggle="modal" class="btn btn-info" onclick="getStaff(${
+                  renderList[i].id
+                })">Cập nhật</button>
+                <button class="btn btn-danger" onclick="deleteStaff(${
+                  renderList[i].id
+                })">Xoá</button>
+            </td>
+        
         </tr>`;
     }
 
     document.getElementById("tableDanhSach").innerHTML = dataHTML;
+};
+
+var saveData = function() {
+    var staffListJSON = JSON.stringify(staffList);
+    localStorage.setItem("staffList", staffListJSON);
+};
+
+var getData = function() {
+    var staffListJSON = JSON.parse(localStorage.getItem("staffList"));
+    if (staffListJSON) {
+        staffList = mapData(staffListJSON);
+    }
+    renderStaff(staffList);
+};
+
+var mapData = function(data) {
+    var listData = [];
+    for (var i = 0; i < data.length; i++) {
+        var mappedStaff = new Staff(
+            data[i].id,
+            data[i].name,
+            data[i].email,
+            data[i].password,
+            data[i].dayWork,
+            data[i].salary,
+            data[i].position,
+            data[i].timeWork
+        );
+        listData.push(mappedStaff);
+    }
+
+    return listData;
 };
 
 var getStaff = function(id) {
@@ -131,7 +171,8 @@ var deleteStaff = function(id) {
         return;
     }
     staffList.splice(index, 1);
-    renderStaff();
+    saveData();
+    getData();
 };
 
 var findById = function(id) {
@@ -162,24 +203,26 @@ var validation = function() {
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
     var isValid = true;
-    if (position === "Chọn chức vụ") {
-        position = "";
-        require(position, "tbChucVu", "Vui lòng chọn chức vụ");
-    }
-    isValid &= require(id, "tbTKNV") && length(id, "tbTKNV", 4, 6);
-    isValid &= require(name, "tbTen") && pattern(name, "tbTen", textPattern);
+    // if (position === "Chọn chức vụ") {
+    //     position = "";
+    //     required(position, "tbChucVu", "Vui lòng chọn chức vụ");
+    //     return !isValid;
+    // }
+
+    isValid &= required(id, "tbTKNV") && length(id, "tbTKNV", 4, 6);
+    isValid &= required(name, "tbTen") && length(id, "tbTKNV", 4, 6);
     isValid &=
-        require(email, "tbEmail") && pattern(email, "tbEmail", emailPattern);
+        required(email, "tbEmail") && pattern(email, "tbEmail", emailPattern);
     isValid &=
-        require(password, "tbMatKhau") &&
+        required(password, "tbMatKhau") &&
         pattern(password, "tbMatKhau", passwordPattern);
-    isValid &= require(dayWork, "tbNgay");
+    isValid &= required(dayWork, "tbNgay");
     isValid &=
-        require(timeWork, "tbGiolam") && length(timeWork, "tbGiolam", 4, 6);
+        required(timeWork, "tbGiolam") && length(timeWork, "tbGiolam", 4, 6);
     var minTimeWork = 80;
     var maxTimeWork = 200;
     isValid &=
-        require(timeWork, "tbGiolam") &&
+        required(timeWork, "tbGiolam") &&
         numberRangeValidate(
             timeWork,
             "tbGiolam",
@@ -191,7 +234,7 @@ var validation = function() {
     var minSalary = 1000000;
     var maxSalary = 20000000;
     isValid &=
-        require(salary, "tbLuongCB") &&
+        required(salary, "tbLuongCB") &&
         numberRangeValidate(
             salary,
             "tbLuongCB",
@@ -204,12 +247,14 @@ var validation = function() {
     return isValid;
 };
 
-var require = function(val, spanId, message) {
+var required = function(val, spanId, message) {
     if (!val) {
         document.getElementById(spanId).innerHTML =
             message || "* Trường này bắt buộc nhập!";
+        document.getElementById(spanId).style.display = "inline-block";
         return false;
     }
+    document.getElementById(spanId).style.display = "none";
     document.getElementById(spanId).innerHTML = "";
     return true;
 };
@@ -219,8 +264,10 @@ var length = function(val, spanId, min, max) {
         document.getElementById(
             spanId
         ).innerHTML = `* Độ dài phải từ ${min} tới ${max} kí tự`;
+        document.getElementById(spanId).style.display = "inline-block";
         return false;
     }
+    document.getElementById(spanId).style.display = "none";
     document.getElementById(spanId).innerHTML = "";
     return true;
 };
@@ -230,8 +277,11 @@ var pattern = function(val, spanId, regex) {
 
     if (!valid) {
         document.getElementById(spanId).innerHTML = "* Không đúng định dạng";
+        document.getElementById(spanId).style.display = "inline-block";
         return false;
     }
+    document.getElementById(spanId).style.display = "none";
+
     document.getElementById(spanId).innerHTML = "";
     return true;
 };
@@ -241,6 +291,7 @@ var numberRangeValidate = function(value, spanId, min, max, message) {
         document.getElementById(spanId).innerHTML = message;
         return false;
     }
+    // document.getElementById("tbTKNV").style.display = "none";
     document.getElementById(spanId).innerHTML = "";
     return true;
 };

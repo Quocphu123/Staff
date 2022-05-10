@@ -5,7 +5,7 @@ var createStaff = function() {
 
     if (!isFormValid) return;
 
-    var id = document.getElementById("tknv").value;
+    var id = +document.getElementById("tknv").value;
     var name = document.getElementById("name").value;
     var email = document.getElementById("email").value;
     var password = document.getElementById("password").value;
@@ -26,7 +26,6 @@ var createStaff = function() {
     );
 
     staffList.push(newStaff);
-    console.log(staffList);
     saveData();
     getData();
     document.getElementById("btnDong").click();
@@ -67,42 +66,25 @@ var saveData = function() {
 };
 
 var getData = function() {
-    var staffListJSON = JSON.parse(localStorage.getItem("staffList"));
-    if (staffListJSON) {
-        staffList = mapData(staffListJSON);
-    }
+    staffList = JSON.parse(localStorage.getItem("staffList"));
+    console.log(staffList);
     renderStaff(staffList);
 };
 
-var mapData = function(data) {
-    var listData = [];
-    for (var i = 0; i < data.length; i++) {
-        var mappedStaff = new Staff(
-            data[i].id,
-            data[i].name,
-            data[i].email,
-            data[i].password,
-            data[i].dayWork,
-            data[i].salary,
-            data[i].position,
-            data[i].timeWork
-        );
-        listData.push(mappedStaff);
-    }
-
-    return listData;
-};
-
 var getStaff = function(id) {
+    console.log(staffList);
     var index = findById(id);
-    if (index === -1) {
-        alert("Nhân viên k tồn tại");
-        return false;
-    }
+    // if (index === -1) {
+    //     alert("Nhân viên k tồn tại");
+    //     return false;
+    // }
+    console.log(index);
 
     var foundStaff = staffList[index];
-
+    console.log(foundStaff.id);
+    document.getElementById("tknv").disabled = true;
     document.getElementById("tknv").value = foundStaff.id;
+
     document.getElementById("name").value = foundStaff.name;
     document.getElementById("email").value = foundStaff.email;
     document.getElementById("password").value = foundStaff.password;
@@ -110,10 +92,20 @@ var getStaff = function(id) {
     document.getElementById("luongCB").value = foundStaff.salary;
     document.getElementById("chucvu").value = foundStaff.position;
     document.getElementById("gioLam").value = foundStaff.timeWork;
+
+    document.getElementById("btnThemNV").style.display = "none";
+    document.getElementById("btnCapNhat").addEventListener("click", () => {
+        updateStaff(foundStaff.id);
+    });
 };
 
 var updateStaff = function(id) {
-    var id = document.getElementById("tknv").value;
+    var index = findById(id);
+    console.log(index);
+    if (!validation()) {
+        return false;
+    }
+    var id = +document.getElementById("tknv").value;
     var name = document.getElementById("name").value;
     var email = document.getElementById("email").value;
     var password = document.getElementById("password").value;
@@ -132,7 +124,44 @@ var updateStaff = function(id) {
         position,
         timeWork
     );
+    console.log(newStaff);
+    staffList.splice(index, 1, newStaff);
+
+    document.getElementById("btnDong").click();
+
+    saveData();
+    getData();
 };
+
+var clearModal = function() {
+    document.getElementById("tknv").value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("datepicker").value = "";
+    document.getElementById("luongCB").value = "";
+    document.getElementById("chucvu").value = "";
+    document.getElementById("gioLam").value = "";
+
+    document.getElementById("tbTKNV").innerHTML = "";
+    document.getElementById("tbTen").innerHTML = "";
+    document.getElementById("tbEmail").innerHTML = "";
+    document.getElementById("tbMatKhau").innerHTML = "";
+    document.getElementById("tbNgay").innerHTML = "";
+    document.getElementById("tbLuongCB").innerHTML = "";
+    document.getElementById("tbChucVu").innerHTML = "";
+    document.getElementById("tbGiolam").innerHTML = "";
+
+    document.getElementById("tbTKNV").style.display = "none";
+    document.getElementById("tbTen").style.display = "none";
+    document.getElementById("tbEmail").style.display = "none";
+    document.getElementById("tbMatKhau").style.display = "none";
+    document.getElementById("tbNgay").style.display = "none";
+    document.getElementById("tbLuongCB").style.display = "none";
+    document.getElementById("tbChucVu").style.display = "none";
+    document.getElementById("tbGiolam").style.display = "none";
+};
+
 var findById = function(id) {
     for (var i = 0; i < staffList.length; i++) {
         if (staffList[i].id === id) {
@@ -243,7 +272,6 @@ var validation = function() {
             `* Lương phải từ ${minSalary} - ${maxSalary} đồng.`
         );
 
-    console.log(isValid);
     return isValid;
 };
 
@@ -295,3 +323,5 @@ var numberRangeValidate = function(value, spanId, min, max, message) {
     document.getElementById(spanId).innerHTML = "";
     return true;
 };
+
+getData();

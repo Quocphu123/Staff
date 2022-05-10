@@ -31,23 +31,24 @@ var createStaff = function() {
     document.getElementById("btnDong").click();
 };
 
-var renderStaff = function() {
+var renderStaff = function(data) {
+    if (!data) data = staffList
     var dataHTML = "";
-    for (var i = 0; i < staffList.length; i++) {
+    for (var i = 0; i < data.length; i++) {
         dataHTML += `<tr>
-            <td>${staffList[i].id}</td>
-            <td>${staffList[i].name}</td>
-            <td>${staffList[i].email}</td>
-            <td>${staffList[i].dayWork}</td>
-            <td>${staffList[i].position}</td>
-            <td>${salaryStaff(staffList[i].position, staffList[i].salary)}</td>
-            <td>${typeStaff(staffList[i].timeWork)}</td>
+            <td>${data[i].id}</td>
+            <td>${data[i].name}</td>
+            <td>${data[i].email}</td>
+            <td>${data[i].dayWork}</td>
+            <td>${data[i].position}</td>
+            <td>${salaryStaff(data[i].position, data[i].salary)}</td>
+            <td>${typeStaff(data[i].timeWork)}</td>
             <td>
                 <button data-target="#myModal" data-toggle="modal" class="btn btn-info" onclick="getStaff('${
-                  staffList[i].id
+                  data[i].id
                 }')">Cập nhật</button>
                 <button class="btn btn-danger" onclick="deleteStaff('${
-                  staffList[i].id
+                  data[i].id
                 }')">Xoá</button>
             </td>
         
@@ -70,11 +71,8 @@ var getData = function() {
 };
 
 var getStaff = function(id) {
-    console.log(id); //123456
-    console.log(staffList[1].id); //123456
     var index = findById(id);
     console.log(index);
-
     var foundStaff = staffList[index];
 
     document.getElementById("tknv").value = foundStaff.id;
@@ -119,9 +117,27 @@ var updateStaff = function() {
     foundStaff.timeWork = timeWork;
 
     document.getElementById("btnDong").click();
-
+    clearModal();
+    document.getElementById("tknv").disabled = false;
     saveData();
     renderStaff();
+};
+
+var findStaff = function() {
+    var foundList = [];
+    var keyword = document
+        .getElementById("searchName")
+        .value.toLowerCase()
+        .trim();
+
+    console.log(keyword);
+    for (var i = 0; i < staffList.length; i++) {
+        var staffType = typeStaff(staffList[i].timeWork).toLowerCase()
+        if (staffType.includes(keyword)) {
+            foundList.push(staffList[i]);
+        }
+    }
+    renderStaff(foundList);
 };
 
 var clearModal = function() {
@@ -131,7 +147,7 @@ var clearModal = function() {
     document.getElementById("password").value = "";
     document.getElementById("datepicker").value = "";
     document.getElementById("luongCB").value = "";
-    document.getElementById("chucvu").value = "";
+    document.getElementById("chucvu").value = "Chọn chức vụ";
     document.getElementById("gioLam").value = "";
 
     document.getElementById("tbTKNV").innerHTML = "";
@@ -193,15 +209,6 @@ var deleteStaff = function(id) {
     staffList.splice(index, 1);
     saveData();
     getData();
-};
-
-var findById = function(id) {
-    for (var i = 0; i < staffList.length; i++) {
-        if ((staffList[i].id = id)) {
-            return i;
-        }
-    }
-    return -1;
 };
 
 // ------ VALIDATION ------

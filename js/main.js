@@ -67,7 +67,7 @@ var saveData = function() {
 
 var getData = function() {
     staffList = JSON.parse(localStorage.getItem("staffList"));
-    console.log(staffList);
+
     renderStaff(staffList);
 };
 

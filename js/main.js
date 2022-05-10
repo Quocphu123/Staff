@@ -1,4 +1,4 @@
-var staffList = [];
+var staffList = [123];
 
 var createStaff = function() {
     var isFormValid = validation();
@@ -24,6 +24,7 @@ var createStaff = function() {
         position,
         timeWork
     );
+    console.log({ staffList, newStaff });
 
     staffList.push(newStaff);
     saveData();
@@ -66,7 +67,9 @@ var saveData = function() {
 };
 
 var getData = function() {
-    staffList = JSON.parse(localStorage.getItem("staffList"));
+    if (localStorage.getItem("staffList")) {
+        staffList = JSON.parse(localStorage.getItem("staffList"));
+    }
 
     if (staffList) {
         renderStaff(staffList);
